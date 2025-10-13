@@ -1,0 +1,19 @@
+--- Dependencies & Environments ---
+venv/
+.env
+pycache/
+*.pyc
+
+--- Operating System Files ---
+.DS_Store
+Thumbs.db
+
+--- Jupyter / VS Code / IDE files ---
+.ipynb_checkpoints/
+.vscode/
+
+--- Streamlit/Deployment Cache & Logs ---
+.streamlit/
+temp/
+*.log
+*.csv
