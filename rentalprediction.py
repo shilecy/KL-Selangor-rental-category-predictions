@@ -355,9 +355,7 @@ if btn:
         st.error("⚠️ Please ensure all mandatory fields (Selectboxes) are filled before predicting.")
     else:
         # 2. Call the prediction function (28 arguments now, matching the function signature)
-        try:
-            st.info(f"Selected Region: {region_select}, Location Code: {location_code} | Processing data for {size_bins} size...")
-            
+        try:            
             # UNPACKING TWO RETURN VALUES: The prediction category (string) and the raw probabilities (array)
             prediction_category, probabilities = preprocess_and_predict(
                 completion_year=2010,       # Dummy value to satisfy argument 1
@@ -391,38 +389,10 @@ if btn:
                 Near_KTM_LRT=mrt_lrt_ktm, 
                 Washing_Machine=washing_machine
             )
-            
-            st.success("Prediction Complete!")
             st.balloons()
-            st.markdown(f'## The Predicted Rental Rate Category is: <span style="color:#d9534f; font-weight: bold;">{prediction_category}</span>', unsafe_allow_html=True)
-            st.write(f"Using **DEBUGGING MODE** (Threshold Disabled). Raw model output is shown.")
-            
-            # --- NEW PROBABILITY DISPLAY ---
-            st.markdown("---")
-            st.subheader("Model Probabilities Breakdown")
-            
-            prob_low = probabilities[2] * 100 # Swapped index 0 for display
-            prob_medium = probabilities[1] * 100
-            prob_high = probabilities[0] * 100 # Swapped index 2 for display
-            
-            col_p1, col_p2, col_p3 = st.columns(3)
-            # Display based on the corrected label meaning
-            col_p1.metric(f"P(Low) - Corresponds to Model Class 2", f"{prob_low:.2f}%")
-            col_p2.metric(f"P(Medium) - Corresponds to Model Class 1", f"{prob_medium:.2f}%")
-            col_p3.metric(f"P(High) - Corresponds to Model Class 0", f"{prob_high:.2f}%")
-            
-            # Explain the decision based on the highest probability
-            # We use the *corrected* category string for the explanation
-            winning_class_index = np.argmax(probabilities)
-            winning_class = rental_categories[winning_class_index]
+            st.markdown(f'## The Predicted Rental Rate Category is: <span style="color: black; font-weight: bold;">{prediction_category}', 
+            unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div style="background-color: #f7f7f7; color: #333333; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            **Decision Logic (DEBUG):** The model predicted Model Class {winning_class_index}, which corresponds to **{winning_class}**.
-            </div>
-            """, unsafe_allow_html=True)
-
-            
         except Exception as e:
             st.error(f"An unexpected error occurred during prediction: {e}")
             st.warning("Please verify the data types and column names/order in your model training.")
