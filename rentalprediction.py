@@ -6,6 +6,8 @@ import base64
     
 # --- 0. FILE CHECK & SETUP ---
 
+BACKGROUND_IMAGE_PATH = 'background.jpg'
+
 # NOTE: These files must exist in the same directory as this script.
 try:
     # Load the trained pipeline (which includes all preprocessing steps and the XGBoost model)
@@ -115,15 +117,18 @@ def safe_int(value):
     except (ValueError, TypeError):
         return 0
 
+@st.cache_data # Cache the image loading for performance
 def get_base64_of_bin_file(bin_file):
     """Encodes a local file to base64 for use in CSS."""
-    # Note: Assumes 'background.jpg' is available for the UI
     try:
         with open(bin_file, 'rb') as f:
             data = f.read()
         return base64.b64encode(data).decode()
-    except:
+    except Exception as e:
+        st.error(f"Error loading background image: {e}")
         return "" # Return empty if file fails to load
+
+@st.cache_resource
 
 def set_background(png_file):
     """Applies custom CSS for a background image."""
@@ -223,30 +228,78 @@ def preprocess_and_predict(completion_year, location, region, property_type, fur
 
 # --- 4. STREAMLIT UI & INPUT GATHERING ---
 
-try:
-    set_background('background.jpg')
-except FileNotFoundError:
-    st.warning("⚠️ Background image 'background.jpg' not found. Using default Streamlit background.")
-except Exception as e:
-    st.warning(f"⚠️ Could not load background image: {e}")
+# Custom CSS for enhanced styling and background image cropping
+bin_str = get_base64_of_bin_file(BACKGROUND_IMAGE_PATH)
 
-# Customizing title text color & button style
-st.markdown("<h1 style='color: orange;'>CHECK YOUR RENTAL RATES NOW!</h1>", unsafe_allow_html=True)
-st.markdown(
-    """
-    <style>
-    .stButton>button {
-        color: white;
-        background-color: orange;
-        border-radius: 8px;
-    }
-    h1 { font-size: 45px;}
-    h3 { font-size: 20px;}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-st.markdown("### Predict the rental category (Low, Medium, or High) for a property listing.")
+if bin_str: # Only apply if image loaded successfully
+    st.markdown(
+        f"""
+        <style>
+        /* Main app styling with background image */
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{bin_str}");
+            background-size: cover; /* Ensures image covers the area */
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* Adjust background-position-y to move the image down, effectively 'cropping' the top */
+            background-position: center top 0px; /* Adjust 0px as needed, e.g., 50px */
+        }}
+        .stHeader {{
+            background-color: rgba(0,0,0,0);
+        }}
+        .main, .block-container {{
+            background: rgba(255, 255, 255, 0.35); /* Slightly off-white background for content box */
+            border-radius: 10px;
+            padding: 20px;
+        }}
+        .stButton>button {{
+            background-color: #072aed;
+            color: white;
+            border-radius: 12px;
+            outline: none !important;
+            border: none !important;
+            padding: 10px 24px;
+            font-size: 18px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }}
+        .stButton>button:hover {{
+            background-color: #364bbe;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }}
+        .prediction-box {{
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            text-align: center;
+            margin-top: 20px;
+        }}
+        .prediction-title {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #00796b;
+        }}
+        .prediction-result {{
+            font-size: 32px;
+            font-weight: 900;
+            color: #004d40;
+            margin-top: 10px;
+        }}
+        .stWarning, .stError {{
+             border-radius: 10px;
+        }}
+        
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+else: # Fallback if image not found
+    st.warning("Background image 'background.jpg' not found. Using default Streamlit background.")
+
+
+st.markdown("<h1 style='text-align: center; color: #072aed;'>CHECK YOUR RENTAL RATES NOW!</h1>", unsafe_allow_html=True)
+st.subheader("Predicting property rental category in KL & Selangor (Low, Medium, High)")
 
 # ----------------- Input Columns -----------------
 col1, col2 = st.columns(2)
